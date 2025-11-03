@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
     * {
       margin: 0;
       padding: 0;
@@ -10,201 +12,483 @@
     }
     
     body {
-      width: 350px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px;
+      width: 380px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0a0a0a;
+      color: #ffffff;
+      overflow: hidden;
     }
     
     .container {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
+      position: relative;
+      min-height: 500px;
     }
     
-    h1 {
-      font-size: 24px;
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      padding: 24px 24px 32px;
       text-align: center;
-      margin-bottom: 5px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1" fill="white" opacity="0.1"/></svg>');
+      background-size: 20px 20px;
+      opacity: 0.3;
+    }
+    
+    .logo {
+      font-size: 36px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+    
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+      position: relative;
     }
     
     .subtitle {
-      text-align: center;
+      font-size: 13px;
       opacity: 0.9;
-      font-size: 12px;
-      margin-bottom: 10px;
+      font-weight: 400;
+      position: relative;
     }
     
-    .auth-section, .game-section {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border-radius: 12px;
-      padding: 20px;
+    /* Content Area */
+    .content {
+      padding: 24px;
+    }
+    
+    /* Auth Section */
+    .auth-section {
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .input-group {
+      margin-bottom: 16px;
+    }
+    
+    .input-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #a1a1aa;
     }
     
     input {
       width: 100%;
-      padding: 12px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.9);
+      padding: 14px 16px;
+      border: 1.5px solid #27272a;
+      border-radius: 12px;
+      background: #18181b;
+      color: white;
       font-size: 14px;
-      transition: all 0.3s;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
     }
     
     input:focus {
       outline: none;
-      border-color: white;
-      background: white;
+      border-color: #6366f1;
+      background: #1f1f23;
     }
     
+    input::placeholder {
+      color: #52525b;
+    }
+    
+    /* Buttons */
     button {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       font-size: 14px;
       font-weight: 600;
+      font-family: 'Inter', sans-serif;
       cursor: pointer;
-      transition: all 0.3s;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
     
     .btn-primary {
-      background: white;
-      color: #667eea;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
     
     .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
     }
     
     .btn-secondary {
-      background: rgba(255, 255, 255, 0.2);
+      background: #27272a;
       color: white;
-      border: 2px solid white;
+      border: 1.5px solid #3f3f46;
     }
     
     .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.3);
+      background: #2d2d31;
+      border-color: #52525b;
     }
     
-    .btn-danger {
-      background: #ef4444;
+    .btn-text {
+      background: transparent;
+      color: #a1a1aa;
+      padding: 10px;
+      font-size: 13px;
+    }
+    
+    .btn-text:hover {
       color: white;
+      background: #18181b;
     }
     
-    .user-info {
-      text-align: center;
-      margin-bottom: 15px;
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* Game Section */
+    .game-section {
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .user-card {
+      background: #18181b;
+      border: 1.5px solid #27272a;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .user-info-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
     }
     
     .username {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 5px;
+      font-size: 15px;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 2px;
     }
     
-    .hidden {
-      display: none;
+    .user-status {
+      font-size: 12px;
+      color: #22c55e;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
     
-    .status {
-      text-align: center;
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 8px;
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .btn-logout {
+      padding: 8px 12px;
+      font-size: 12px;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      color: #a1a1aa;
+      width: auto;
+    }
+    
+    .btn-logout:hover {
+      background: #3f3f46;
+      color: white;
+    }
+    
+    .match-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+      color: #52525b;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #27272a;
+    }
+    
+    .private-room-section {
+      background: #18181b;
+      border: 1.5px dashed #3f3f46;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    
+    .private-room-title {
       font-size: 13px;
-      margin-top: 10px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #a1a1aa;
     }
     
-    .loading {
+    .room-input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .room-input-group input {
+      flex: 1;
+      text-transform: uppercase;
+      letter-spacing: 2px;
       text-align: center;
-      padding: 20px;
+      font-weight: 600;
+    }
+    
+    .room-input-group button {
+      width: auto;
+      padding: 14px 20px;
+    }
+    
+    /* Status Box */
+    .status-box {
+      margin-top: 20px;
+      padding: 16px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      animation: slideUp 0.3s ease;
+    }
+    
+    .status-box.success {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    }
+    
+    .status-box.warning {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+    
+    /* Loading */
+    .loading-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 24px;
+      animation: fadeIn 0.3s ease;
     }
     
     .spinner {
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-top: 3px solid white;
+      width: 48px;
+      height: 48px;
+      border: 3px solid #27272a;
+      border-top: 3px solid #6366f1;
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
       animation: spin 1s linear infinite;
-      margin: 0 auto 10px;
+      margin-bottom: 16px;
     }
     
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      to { transform: rotate(360deg); }
     }
     
-    .room-code {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
+    .loading-text {
+      font-size: 14px;
+      font-weight: 500;
+      color: #a1a1aa;
+      margin-bottom: 8px;
     }
     
-    .room-code input {
-      flex: 1;
+    .loading-subtext {
+      font-size: 12px;
+      color: #52525b;
     }
     
-    .room-code button {
-      width: auto;
-      padding: 12px 20px;
-    }
-    
-    .error {
-      background: #ef4444;
-      color: white;
-      padding: 10px;
-      border-radius: 8px;
+    /* Error */
+    .error-box {
+      margin-top: 16px;
+      padding: 14px 16px;
+      background: #7f1d1d;
+      border: 1.5px solid #991b1b;
+      border-radius: 12px;
       font-size: 13px;
-      margin-top: 10px;
+      color: #fecaca;
+      animation: shake 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+    
+    /* Icons */
+    .icon {
+      font-style: normal;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>⚔️ CF 1v1 Arena</h1>
-    <div class="subtitle">Competitive Programming Battles</div>
-    
-    <!-- Authentication Section -->
-    <div id="authSection" class="auth-section">
-      <input type="text" id="usernameInput" placeholder="Enter Codeforces Username">
-      <button class="btn-primary" id="verifyBtn">Verify & Start</button>
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">⚔️</div>
+      <div class="title">CF Arena</div>
+      <div class="subtitle">Real-time 1v1 Battles</div>
     </div>
     
-    <!-- Game Section -->
-    <div id="gameSection" class="game-section hidden">
-      <div class="user-info">
-        <div class="username" id="displayUsername"></div>
-        <button class="btn-danger" id="logoutBtn" style="margin-top: 10px; font-size: 12px; padding: 8px;">Logout</button>
+    <!-- Content -->
+    <div class="content">
+      <!-- Authentication Section -->
+      <div id="authSection" class="auth-section">
+        <div class="input-group">
+          <label class="input-label">Codeforces Username</label>
+          <input type="text" id="usernameInput" placeholder="Enter your handle">
+        </div>
+        <button class="btn-primary" id="verifyBtn">
+          <span class="icon">🚀</span>
+          <span>Start Playing</span>
+        </button>
       </div>
       
-      <button class="btn-primary" id="randomMatchBtn">🎲 Random Match</button>
-      
-      <div style="text-align: center; margin: 10px 0; opacity: 0.7;">OR</div>
-      
-      <div class="room-code">
-        <input type="text" id="roomCodeInput" placeholder="Enter Room Code">
-        <button class="btn-secondary" id="joinRoomBtn">Join</button>
+      <!-- Game Section -->
+      <div id="gameSection" class="game-section hidden">
+        <!-- User Card -->
+        <div class="user-card">
+          <div class="user-info-left">
+            <div class="user-avatar" id="userAvatar">A</div>
+            <div>
+              <div class="username" id="displayUsername">Username</div>
+              <div class="user-status">
+                <span class="status-dot"></span>
+                <span>Online</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn-logout" id="logoutBtn">Sign Out</button>
+        </div>
+        
+        <!-- Match Options -->
+        <div class="match-options">
+          <button class="btn-primary" id="randomMatchBtn">
+            <span class="icon">🎲</span>
+            <span>Find Random Match</span>
+          </button>
+          
+          <div class="divider">OR</div>
+          
+          <div class="private-room-section">
+            <div class="private-room-title">PRIVATE MATCH</div>
+            <div class="room-input-group">
+              <input type="text" id="roomCodeInput" placeholder="ROOM CODE" maxlength="6">
+              <button class="btn-secondary" id="joinRoomBtn">Join</button>
+            </div>
+            <button class="btn-secondary" id="createRoomBtn">
+              <span class="icon">➕</span>
+              <span>Create New Room</span>
+            </button>
+          </div>
+        </div>
+        
+        <div id="statusDiv" class="status-box hidden"></div>
       </div>
       
-      <button class="btn-secondary" id="createRoomBtn" style="margin-top: 10px;">Create Private Room</button>
+      <!-- Loading Section -->
+      <div id="loadingSection" class="loading-section hidden">
+        <div class="spinner"></div>
+        <div class="loading-text">Finding opponent...</div>
+        <div class="loading-subtext">This may take a moment</div>
+      </div>
       
-      <div id="statusDiv" class="status hidden"></div>
+      <div id="errorDiv" class="error-box hidden">
+        <span class="icon">⚠️</span>
+        <span id="errorText"></span>
+      </div>
     </div>
-    
-    <!-- Loading Section -->
-    <div id="loadingSection" class="loading hidden">
-      <div class="spinner"></div>
-      <div>Searching for opponent...</div>
-    </div>
-    
-    <div id="errorDiv" class="error hidden"></div>
   </div>
   
   <script src="popup.js"></script>

@@ -1,5 +1,5 @@
 // Configuration
-const WS_SERVER = 'ws://localhost:3000'; // Change to your backend server
+const WS_SERVER = 'ws://localhost:3000';
 
 let ws = null;
 let currentUser = null;
@@ -11,6 +11,7 @@ const loadingSection = document.getElementById('loadingSection');
 const usernameInput = document.getElementById('usernameInput');
 const verifyBtn = document.getElementById('verifyBtn');
 const displayUsername = document.getElementById('displayUsername');
+const userAvatar = document.getElementById('userAvatar');
 const logoutBtn = document.getElementById('logoutBtn');
 const randomMatchBtn = document.getElementById('randomMatchBtn');
 const createRoomBtn = document.getElementById('createRoomBtn');
@@ -18,6 +19,7 @@ const roomCodeInput = document.getElementById('roomCodeInput');
 const joinRoomBtn = document.getElementById('joinRoomBtn');
 const statusDiv = document.getElementById('statusDiv');
 const errorDiv = document.getElementById('errorDiv');
+const errorText = document.getElementById('errorText');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -31,6 +33,20 @@ function setupEventListeners() {
   randomMatchBtn.addEventListener('click', findRandomMatch);
   createRoomBtn.addEventListener('click', createPrivateRoom);
   joinRoomBtn.addEventListener('click', joinRoom);
+  
+  // Enter key support
+  usernameInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') verifyUser();
+  });
+  
+  roomCodeInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') joinRoom();
+  });
+  
+  // Auto-format room code
+  roomCodeInput.addEventListener('input', (e) => {
+    e.target.value = e.target.value.toUpperCase();
+  });
 }
 
 // Load saved user
@@ -51,26 +67,27 @@ async function verifyUser() {
     return;
   }
   
-  verifyBtn.textContent = 'Verifying...';
+  const originalText = verifyBtn.innerHTML;
+  verifyBtn.innerHTML = '<span class="icon">⏳</span><span>Verifying...</span>';
   verifyBtn.disabled = true;
   
   try {
-    // Verify user exists on Codeforces
     const response = await fetch(`https://codeforces.com/api/user.info?handles=${username}`);
     const data = await response.json();
     
     if (data.status === 'OK') {
       await chrome.storage.local.set({ cfUsername: username });
       currentUser = username;
+      hideError();
       showGameSection();
       connectWebSocket();
     } else {
       showError('User not found on Codeforces');
     }
   } catch (error) {
-    showError('Failed to verify user. Please try again.');
+    showError('Failed to verify. Check your connection.');
   } finally {
-    verifyBtn.textContent = 'Verify & Start';
+    verifyBtn.innerHTML = originalText;
     verifyBtn.disabled = false;
   }
 }
@@ -80,15 +97,14 @@ function showGameSection() {
   authSection.classList.add('hidden');
   gameSection.classList.remove('hidden');
   displayUsername.textContent = currentUser;
+  userAvatar.textContent = currentUser.charAt(0).toUpperCase();
   connectWebSocket();
 }
 
 // Logout
 async function logout() {
   await chrome.storage.local.remove(['cfUsername']);
-  if (ws) {
-    ws.close();
-  }
+  if (ws) ws.close();
   currentUser = null;
   gameSection.classList.add('hidden');
   authSection.classList.remove('hidden');
@@ -116,14 +132,13 @@ function connectWebSocket() {
     handleServerMessage(data);
   };
   
-  ws.onerror = (error) => {
-    showError('Connection error. Make sure the server is running.');
-    console.error('WebSocket error:', error);
+  ws.onerror = () => {
+    showError('Connection error. Is the server running?');
   };
   
   ws.onclose = () => {
     console.log('Disconnected from server');
-    setTimeout(connectWebSocket, 3000); // Reconnect after 3s
+    setTimeout(connectWebSocket, 3000);
   };
 }
 
@@ -151,6 +166,7 @@ function handleServerMessage(data) {
     case 'error':
       showError(data.message);
       loadingSection.classList.add('hidden');
+      gameSection.classList.remove('hidden');
       break;
   }
 }
@@ -162,8 +178,8 @@ function findRandomMatch() {
     return;
   }
   
-  loadingSection.classList.remove('hidden');
   gameSection.classList.add('hidden');
+  loadingSection.classList.remove('hidden');
   
   ws.send(JSON.stringify({
     type: 'find_match',
@@ -183,7 +199,7 @@ function createPrivateRoom() {
     username: currentUser
   }));
   
-  showStatus('Creating room...');
+  showStatus('Creating private room...', 'warning');
 }
 
 // Join room
@@ -206,29 +222,29 @@ function joinRoom() {
     roomCode: roomCode
   }));
   
-  showStatus('Joining room...');
+  showStatus('Joining room...', 'warning');
 }
 
 // Handle match found
 function handleMatchFound(data) {
   loadingSection.classList.add('hidden');
-  showStatus(`Match found! Opponent: ${data.opponent}`);
+  gameSection.classList.remove('hidden');
+  showStatus(`🎯 Match found!\nOpponent: ${data.opponent}\nPrepare to battle...`, 'success');
 }
 
 // Handle room created
 function handleRoomCreated(data) {
-  showStatus(`Room created! Code: ${data.roomCode}\nShare this code with your friend.`);
   roomCodeInput.value = data.roomCode;
+  showStatus(`✅ Room created!\nCode: ${data.roomCode}\n\nShare this code with your opponent`, 'success');
 }
 
 // Handle room joined
 function handleRoomJoined(data) {
-  showStatus(`Joined room! Waiting for match to start...`);
+  showStatus('✅ Room joined!\nWaiting for match to start...', 'success');
 }
 
 // Handle match start
 function handleMatchStart(data) {
-  // Store match data
   chrome.storage.local.set({ 
     activeMatch: {
       matchId: data.matchId,
@@ -238,36 +254,44 @@ function handleMatchStart(data) {
     }
   });
   
-  // Open problem in new tab
   chrome.tabs.create({ 
     url: `https://codeforces.com/problemset/problem/${data.problem.contestId}/${data.problem.index}`
   });
   
-  showStatus(`Match started! Problem: ${data.problem.contestId}${data.problem.index}\nFirst to solve wins!`);
+  showStatus(
+    `🚀 Battle Started!\n\nProblem: ${data.problem.contestId}${data.problem.index}\nOpponent: ${data.opponent}\n\nFirst correct submission wins!`,
+    'success'
+  );
 }
 
 // Handle submission update
 function handleSubmissionUpdate(data) {
-  showStatus(`${data.username} submitted! Status: ${data.status}`);
+  showStatus(`📝 ${data.username} submitted!\nVerdict: ${data.status}`, 'warning');
 }
 
 // Handle match end
 function handleMatchEnd(data) {
   chrome.storage.local.remove(['activeMatch']);
   
-  const winner = data.winner === currentUser ? 'You won! 🎉' : `${data.winner} won!`;
-  showStatus(`Match ended!\n${winner}\nTime: ${data.solveTime}s`);
+  const isWinner = data.winner === currentUser;
+  const message = isWinner 
+    ? `🎉 Victory!\n\nYou won the match!\nTime: ${data.solveTime}s` 
+    : `💪 Good Fight!\n\n${data.winner} won\nTime: ${data.solveTime}s`;
   
-  // Show game section again
+  showStatus(message, isWinner ? 'success' : 'warning');
+  
   setTimeout(() => {
     loadingSection.classList.add('hidden');
     gameSection.classList.remove('hidden');
-  }, 3000);
+    hideStatus();
+  }, 5000);
 }
 
 // Utility functions
-function showStatus(message) {
+function showStatus(message, type = '') {
   statusDiv.textContent = message;
+  statusDiv.className = 'status-box';
+  if (type) statusDiv.classList.add(type);
   statusDiv.classList.remove('hidden');
 }
 
@@ -276,9 +300,9 @@ function hideStatus() {
 }
 
 function showError(message) {
-  errorDiv.textContent = message;
+  errorText.textContent = message;
   errorDiv.classList.remove('hidden');
-  setTimeout(() => hideError(), 5000);
+  setTimeout(() => hideError(), 4000);
 }
 
 function hideError() {

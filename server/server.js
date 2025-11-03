@@ -71,6 +71,22 @@ function handleRegister(ws, data) {
   const { username } = data;
   connectedUsers.set(username, ws);
   console.log(`User registered: ${username}`);
+  
+  // Check if user has a pending match that started while they were disconnected
+  for (const [matchId, match] of activeMatches.entries()) {
+    if (!match.ended && (match.player1 === username || match.player2 === username)) {
+      // Resend match start to newly connected user
+      const opponent = match.player1 === username ? match.player2 : match.player1;
+      sendMessage(username, {
+        type: 'match_start',
+        matchId: match.matchId,
+        problem: match.problem,
+        opponent: opponent
+      });
+      console.log(`Resent match start to reconnected user: ${username}`);
+      break;
+    }
+  }
 }
 
 function handleFindMatch(ws, data) {
@@ -178,25 +194,34 @@ function createMatch(player1, player2) {
     opponent: player1
   });
   
-  // Start match after 3 seconds
+  // Notify both players immediately
   setTimeout(() => {
-    sendMessage(player1, {
-      type: 'match_start',
-      matchId,
-      problem,
-      opponent: player2
-    });
+    const player1Connected = connectedUsers.has(player1);
+    const player2Connected = connectedUsers.has(player2);
     
-    sendMessage(player2, {
-      type: 'match_start',
-      matchId,
-      problem,
-      opponent: player1
-    });
+    if (player1Connected) {
+      sendMessage(player1, {
+        type: 'match_start',
+        matchId,
+        problem,
+        opponent: player2
+      });
+    }
+    
+    if (player2Connected) {
+      sendMessage(player2, {
+        type: 'match_start',
+        matchId,
+        problem,
+        opponent: player1
+      });
+    }
     
     // Start monitoring submissions
-    monitorMatch(matchId);
-  }, 3000);
+    if (player1Connected || player2Connected) {
+      monitorMatch(matchId);
+    }
+  }, 1000);
   
   console.log(`Match created: ${player1} vs ${player2}`);
 }
