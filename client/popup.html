@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 350px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    h1 {
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 5px;
+    }
+    
+    .subtitle {
+      text-align: center;
+      opacity: 0.9;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    
+    .auth-section, .game-section {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: white;
+      background: white;
+    }
+    
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .btn-primary {
+      background: white;
+      color: #667eea;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid white;
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .user-info {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    
+    .username {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .status {
+      text-align: center;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .room-code {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .room-code input {
+      flex: 1;
+    }
+    
+    .room-code button {
+      width: auto;
+      padding: 12px 20px;
+    }
+    
+    .error {
+      background: #ef4444;
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚔️ CF 1v1 Arena</h1>
+    <div class="subtitle">Competitive Programming Battles</div>
+    
+    <!-- Authentication Section -->
+    <div id="authSection" class="auth-section">
+      <input type="text" id="usernameInput" placeholder="Enter Codeforces Username">
+      <button class="btn-primary" id="verifyBtn">Verify & Start</button>
+    </div>
+    
+    <!-- Game Section -->
+    <div id="gameSection" class="game-section hidden">
+      <div class="user-info">
+        <div class="username" id="displayUsername"></div>
+        <button class="btn-danger" id="logoutBtn" style="margin-top: 10px; font-size: 12px; padding: 8px;">Logout</button>
+      </div>
+      
+      <button class="btn-primary" id="randomMatchBtn">🎲 Random Match</button>
+      
+      <div style="text-align: center; margin: 10px 0; opacity: 0.7;">OR</div>
+      
+      <div class="room-code">
+        <input type="text" id="roomCodeInput" placeholder="Enter Room Code">
+        <button class="btn-secondary" id="joinRoomBtn">Join</button>
+      </div>
+      
+      <button class="btn-secondary" id="createRoomBtn" style="margin-top: 10px;">Create Private Room</button>
+      
+      <div id="statusDiv" class="status hidden"></div>
+    </div>
+    
+    <!-- Loading Section -->
+    <div id="loadingSection" class="loading hidden">
+      <div class="spinner"></div>
+      <div>Searching for opponent...</div>
+    </div>
+    
+    <div id="errorDiv" class="error hidden"></div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
