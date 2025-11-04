@@ -162,47 +162,12 @@ const PROBLEM_POOL = [
 - [ ] Discord integration
 - [ ] ELO rating system
 
-## Deployment
-
-### Deploy Backend
-
-You can deploy the backend to:
-- **Heroku**: Free tier supports WebSocket
-- **Railway**: Easy deployment
-- **DigitalOcean**: Full control
-- **AWS EC2**: Scalable solution
-
-Update the `WS_SERVER` URL in popup.js after deployment.
-
-## Troubleshooting
-
-**Extension not connecting?**
-- Make sure server is running
-- Check WebSocket URL is correct
-- Verify firewall allows WebSocket connections
-
-**Match not starting?**
-- Check both users are verified
-- Ensure Codeforces API is accessible
-- Check server logs for errors
-
-**Winner not detected?**
-- Codeforces API has rate limits
-- Solution must be "OK" verdict
-- Both players must be online
-
-## License
-
-MIT License - Feel free to modify and use!
-
-## Contributing
-
-Pull requests welcome! Some ideas:
-- Better problem selection algorithm
-- User statistics and rankings
-- Mobile app version
-- More game modes
-
-## Credits
 
 Built for competitive programmers who love the thrill of real-time battles! 🚀
+<img width="1919" height="1052" alt="image" src="https://github.com/user-attachments/assets/8d97ad8f-c351-498e-ab61-05abf070393e" />
+
+<img width="1896" height="997" alt="Screenshot 2025-11-04 030726" src="https://github.com/user-attachments/assets/aeab192c-334d-42af-899a-8b69c4438fe3" />
+
+<img width="1829" height="940" alt="image" src="https://github.com/user-attachments/assets/a1a0d0e9-2acd-45e7-8326-b670b2af4cd3" />
+<img width="1640" height="870" alt="image" src="https://github.com/user-attachments/assets/32dca1e5-d9f4-4146-99c2-7da456a9389c" />
+
