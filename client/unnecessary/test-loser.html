@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test Loser UI</title>
+  </head>
+  <body>
+    <h1>Redirecting to Loser UI...</h1>
+    <script>
+      // Simulate loser scenario
+      const params = new URLSearchParams({
+        winner: "opponent_user",
+        player1: "you",
+        player2: "opponent_user",
+        solveTime: "145",
+        problemId: "1010A",
+        contestId: "1010",
+        problemIndex: "A",
+        currentUser: "you",
+      });
+
+      window.location.href = "results.html?" + params.toString();
+    </script>
+  </body>
+</html>
