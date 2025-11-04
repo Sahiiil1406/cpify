@@ -3,13 +3,8 @@
   "name": "Codeforces 1v1 Arena",
   "version": "1.0.0",
   "description": "Compete in real-time 1v1 coding battles on Codeforces",
-  "permissions": [
-    "storage",
-    "activeTab"
-  ],
-  "host_permissions": [
-    "https://codeforces.com/*"
-  ],
+  "permissions": ["storage", "activeTab", "tabs", "notifications", "alarms"],
+  "host_permissions": ["https://codeforces.com/*"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -23,8 +18,17 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://codeforces.com/problemset/problem/*", "https://codeforces.com/contest/*/problem/*"],
+      "matches": [
+        "https://codeforces.com/problemset/problem/*",
+        "https://codeforces.com/contest/*/problem/*"
+      ],
       "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["results.html"],
+      "matches": ["<all_urls>"]
     }
   ],
   "icons": {

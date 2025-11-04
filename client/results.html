@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Match Results - CF Arena</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #0a0a0a;
+        color: white;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        overflow: hidden;
+      }
+
+      /* Animated background */
+      .bg-animation {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        opacity: 0.3;
+      }
+
+      .bg-circle {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        animation: float 8s infinite ease-in-out;
+      }
+
+      .circle-1 {
+        width: 400px;
+        height: 400px;
+        background: #6366f1;
+        top: -100px;
+        left: -100px;
+        animation-delay: 0s;
+      }
+
+      .circle-2 {
+        width: 500px;
+        height: 500px;
+        background: #8b5cf6;
+        bottom: -150px;
+        right: -150px;
+        animation-delay: 2s;
+      }
+
+      .circle-3 {
+        width: 300px;
+        height: 300px;
+        background: #22c55e;
+        top: 50%;
+        left: 50%;
+        animation-delay: 4s;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        33% {
+          transform: translate(30px, -30px) scale(1.1);
+        }
+        66% {
+          transform: translate(-20px, 20px) scale(0.9);
+        }
+      }
+
+      /* Main container */
+      .container {
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+        width: 100%;
+        text-align: center;
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Result icon */
+      .result-icon {
+        font-size: 120px;
+        margin-bottom: 24px;
+        animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+      }
+
+      @keyframes scaleIn {
+        from {
+          transform: scale(0);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      /* Title */
+      .result-title {
+        font-size: 56px;
+        font-weight: 800;
+        margin-bottom: 12px;
+        letter-spacing: -2px;
+        background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+      }
+
+      .result-title.winner {
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .result-title.loser {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      /* Subtitle */
+      .result-subtitle {
+        font-size: 18px;
+        color: #a1a1aa;
+        margin-bottom: 48px;
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+      }
+
+      /* Stats card */
+      .stats-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 40px;
+        margin-bottom: 32px;
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 32px;
+        margin-bottom: 32px;
+      }
+
+      .stat-item {
+        text-align: center;
+      }
+
+      .stat-label {
+        font-size: 13px;
+        color: #71717a;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: white;
+      }
+
+      .stat-value.highlight {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      /* Players comparison */
+      .players-comparison {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 24px;
+        align-items: center;
+        padding-top: 32px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .player-card {
+        text-align: center;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        transition: all 0.3s;
+      }
+
+      .player-card.winner {
+        background: rgba(34, 197, 94, 0.1);
+        border: 2px solid rgba(34, 197, 94, 0.3);
+        transform: scale(1.05);
+      }
+
+      .player-card.loser {
+        background: rgba(239, 68, 68, 0.05);
+        border: 2px solid rgba(239, 68, 68, 0.2);
+        opacity: 0.7;
+      }
+
+      .player-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0 auto 12px;
+      }
+
+      .player-card.winner .player-avatar {
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      }
+
+      .player-name {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .player-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .vs-divider {
+        font-size: 24px;
+        font-weight: 700;
+        color: #52525b;
+      }
+
+      /* Buttons */
+      .actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+      }
+
+      .btn {
+        padding: 16px 32px;
+        border: none;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 600;
+        font-family: "Inter", sans-serif;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      /* Confetti animation for winner */
+      .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background: #f59e0b;
+        position: absolute;
+        animation: confetti-fall 3s linear infinite;
+      }
+
+      @keyframes confetti-fall {
+        to {
+          transform: translateY(100vh) rotate(360deg);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-animation">
+      <div class="bg-circle circle-1"></div>
+      <div class="bg-circle circle-2"></div>
+      <div class="bg-circle circle-3"></div>
+    </div>
+
+    <div class="container">
+      <div class="result-icon" id="resultIcon">🎉</div>
+      <h1 class="result-title" id="resultTitle">VICTORY!</h1>
+      <p class="result-subtitle" id="resultSubtitle">You won the match!</p>
+
+      <div class="stats-card">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-label">Problem</div>
+            <div class="stat-value highlight" id="problemId">1000A</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Solve Time</div>
+            <div class="stat-value" id="solveTime">2:34</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Match Duration</div>
+            <div class="stat-value" id="matchDuration">5:12</div>
+          </div>
+        </div>
+
+        <div class="players-comparison">
+          <div class="player-card" id="player1Card">
+            <div class="player-avatar" id="player1Avatar">A</div>
+            <div class="player-name" id="player1Name">Player1</div>
+            <div class="player-badge" id="player1Badge" style="display: none">
+              Winner
+            </div>
+          </div>
+
+          <div class="vs-divider">VS</div>
+
+          <div class="player-card" id="player2Card">
+            <div class="player-avatar" id="player2Avatar">B</div>
+            <div class="player-name" id="player2Name">Player2</div>
+            <div class="player-badge" id="player2Badge" style="display: none">
+              Winner
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="playAgainBtn">
+          <span>🎲</span>
+          <span>Play Again</span>
+        </button>
+        <button class="btn btn-secondary" id="viewProblemBtn">
+          <span>📝</span>
+          <span>View Problem</span>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // Get match data from URL params
+      const params = new URLSearchParams(window.location.search);
+      const matchData = {
+        winner: params.get("winner"),
+        player1: params.get("player1"),
+        player2: params.get("player2"),
+        solveTime: parseInt(params.get("solveTime")) || 0,
+        problemId: params.get("problemId"),
+        contestId: params.get("contestId"),
+        problemIndex: params.get("problemIndex"),
+        currentUser: params.get("currentUser"),
+      };
+
+      console.log("Match data received:", matchData);
+
+      // Validate data
+      if (!matchData.winner || !matchData.player1 || !matchData.player2) {
+        console.error("Missing match data");
+        document.getElementById("resultTitle").textContent = "ERROR";
+        document.getElementById("resultSubtitle").textContent =
+          "Match data not found";
+      }
+
+      // Format time
+      function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
+      }
+
+      // Update UI
+      const isWinner = matchData.winner === matchData.currentUser;
+
+      console.log("Current user:", matchData.currentUser);
+      console.log("Winner:", matchData.winner);
+      console.log("Is winner:", isWinner);
+
+      // Result header
+      document.getElementById("resultIcon").textContent = isWinner ? "🎉" : "�";
+      const titleEl = document.getElementById("resultTitle");
+      titleEl.textContent = isWinner ? "VICTORY!" : "DEFEAT";
+      titleEl.classList.add(isWinner ? "winner" : "loser");
+      document.getElementById("resultSubtitle").textContent = isWinner
+        ? "Congratulations! You solved it first!"
+        : `${matchData.winner} solved it first. Better luck next time!`;
+
+      // Stats
+      document.getElementById("problemId").textContent =
+        matchData.problemId || "N/A";
+      document.getElementById("solveTime").textContent = formatTime(
+        matchData.solveTime
+      );
+      document.getElementById("matchDuration").textContent = formatTime(
+        matchData.solveTime + 30
+      ); // Approximate
+
+      // Players
+      const player1El = document.getElementById("player1Card");
+      const player2El = document.getElementById("player2Card");
+
+      document.getElementById("player1Name").textContent =
+        matchData.player1 || "Player 1";
+      document.getElementById("player1Avatar").textContent = (
+        matchData.player1 || "P"
+      )
+        .charAt(0)
+        .toUpperCase();
+
+      document.getElementById("player2Name").textContent =
+        matchData.player2 || "Player 2";
+      document.getElementById("player2Avatar").textContent = (
+        matchData.player2 || "P"
+      )
+        .charAt(0)
+        .toUpperCase();
+
+      // Mark winner
+      if (matchData.winner === matchData.player1) {
+        player1El.classList.add("winner");
+        player2El.classList.add("loser");
+        document.getElementById("player1Badge").style.display = "inline-block";
+      } else if (matchData.winner === matchData.player2) {
+        player2El.classList.add("winner");
+        player1El.classList.add("loser");
+        document.getElementById("player2Badge").style.display = "inline-block";
+      }
+
+      // Confetti for winner
+      if (isWinner) {
+        createConfetti();
+      }
+
+      function createConfetti() {
+        const colors = ["#6366f1", "#8b5cf6", "#22c55e", "#f59e0b", "#ef4444"];
+        for (let i = 0; i < 50; i++) {
+          setTimeout(() => {
+            const confetti = document.createElement("div");
+            confetti.className = "confetti";
+            confetti.style.left = Math.random() * 100 + "%";
+            confetti.style.background =
+              colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDelay = Math.random() * 2 + "s";
+            document.body.appendChild(confetti);
+
+            setTimeout(() => confetti.remove(), 3000);
+          }, i * 50);
+        }
+      }
+
+      // Button actions
+      document.getElementById("playAgainBtn").addEventListener("click", () => {
+        // Try to send message to open popup
+        if (typeof chrome !== "undefined" && chrome.runtime) {
+          chrome.runtime.sendMessage({ type: "open_popup" }, (response) => {
+            console.log("Open popup response:", response);
+          });
+        }
+        // Close this tab after a moment
+        setTimeout(() => {
+          window.close();
+        }, 500);
+      });
+
+      document
+        .getElementById("viewProblemBtn")
+        .addEventListener("click", () => {
+          if (matchData.contestId && matchData.problemIndex) {
+            window.location.href = `https://codeforces.com/problemset/problem/${matchData.contestId}/${matchData.problemIndex}`;
+          } else {
+            alert("Problem information not available");
+          }
+        });
+
+      // Update background animation based on result
+      if (isWinner) {
+        document.querySelector(".circle-3").style.background = "#22c55e";
+      } else {
+        document.querySelector(".circle-1").style.background = "#ef4444";
+        document.querySelector(".circle-2").style.background = "#dc2626";
+        document.querySelector(".circle-3").style.background = "#b91c1c";
+      }
+    </script>
+  </body>
+</html>

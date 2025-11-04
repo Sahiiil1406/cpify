@@ -1,7 +1,5 @@
-// Configuration
-const WS_SERVER = 'ws://localhost:3000';
+// Popup uses background service worker's WebSocket connection
 
-let ws = null;
 let currentUser = null;
 
 // DOM Elements
@@ -25,6 +23,7 @@ const errorText = document.getElementById('errorText');
 document.addEventListener('DOMContentLoaded', () => {
   loadUser();
   setupEventListeners();
+  setupMessageListener();
 });
 
 function setupEventListeners() {
@@ -34,7 +33,6 @@ function setupEventListeners() {
   createRoomBtn.addEventListener('click', createPrivateRoom);
   joinRoomBtn.addEventListener('click', joinRoom);
   
-  // Enter key support
   usernameInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') verifyUser();
   });
@@ -43,9 +41,22 @@ function setupEventListeners() {
     if (e.key === 'Enter') joinRoom();
   });
   
-  // Auto-format room code
   roomCodeInput.addEventListener('input', (e) => {
     e.target.value = e.target.value.toUpperCase();
+  });
+}
+
+// Listen for messages from background
+function setupMessageListener() {
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    console.log('Popup received message:', request);
+    
+    if (request.type === 'server_message') {
+      handleServerMessage(request.messageType, request.data);
+    }
+    
+    sendResponse({ received: true });
+    return true;
   });
 }
 
@@ -55,6 +66,11 @@ async function loadUser() {
   if (result.cfUsername) {
     currentUser = result.cfUsername;
     showGameSection();
+    
+    // Check WebSocket status
+    chrome.runtime.sendMessage({ type: 'ws_status' }, (response) => {
+      console.log('WebSocket status:', response);
+    });
   }
 }
 
@@ -79,8 +95,15 @@ async function verifyUser() {
       await chrome.storage.local.set({ cfUsername: username });
       currentUser = username;
       hideError();
-      showGameSection();
-      connectWebSocket();
+      
+      // Connect WebSocket through background
+      chrome.runtime.sendMessage({ 
+        type: 'connect_ws',
+        username: username
+      }, (response) => {
+        console.log('WebSocket connection initiated:', response);
+        showGameSection();
+      });
     } else {
       showError('User not found on Codeforces');
     }
@@ -98,13 +121,15 @@ function showGameSection() {
   gameSection.classList.remove('hidden');
   displayUsername.textContent = currentUser;
   userAvatar.textContent = currentUser.charAt(0).toUpperCase();
-  connectWebSocket();
 }
 
 // Logout
 async function logout() {
   await chrome.storage.local.remove(['cfUsername']);
-  if (ws) ws.close();
+  
+  // Disconnect WebSocket
+  chrome.runtime.sendMessage({ type: 'disconnect_ws' });
+  
   currentUser = null;
   gameSection.classList.add('hidden');
   authSection.classList.remove('hidden');
@@ -113,97 +138,55 @@ async function logout() {
   hideStatus();
 }
 
-// WebSocket Connection
-function connectWebSocket() {
-  if (ws && ws.readyState === WebSocket.OPEN) return;
-  
-  ws = new WebSocket(WS_SERVER);
-  
-  ws.onopen = () => {
-    console.log('Connected to server');
-    ws.send(JSON.stringify({
-      type: 'register',
-      username: currentUser
-    }));
-  };
-  
-  ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    handleServerMessage(data);
-  };
-  
-  ws.onerror = () => {
-    showError('Connection error. Is the server running?');
-  };
-  
-  ws.onclose = () => {
-    console.log('Disconnected from server');
-    setTimeout(connectWebSocket, 3000);
-  };
-}
-
-// Handle messages from server
-function handleServerMessage(data) {
-  switch (data.type) {
-    case 'match_found':
-      handleMatchFound(data);
-      break;
-    case 'room_created':
-      handleRoomCreated(data);
-      break;
-    case 'room_joined':
-      handleRoomJoined(data);
-      break;
-    case 'match_start':
-      handleMatchStart(data);
-      break;
-    case 'submission_update':
-      handleSubmissionUpdate(data);
-      break;
-    case 'match_end':
-      handleMatchEnd(data);
-      break;
-    case 'error':
-      showError(data.message);
-      loadingSection.classList.add('hidden');
-      gameSection.classList.remove('hidden');
-      break;
-  }
+// Send message through background WebSocket
+function sendWebSocketMessage(data) {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({
+      type: 'send_ws',
+      data: data
+    }, (response) => {
+      if (response && response.success) {
+        resolve();
+      } else {
+        reject(new Error(response?.error || 'Failed to send message'));
+      }
+    });
+  });
 }
 
 // Find random match
-function findRandomMatch() {
-  if (!ws || ws.readyState !== WebSocket.OPEN) {
+async function findRandomMatch() {
+  try {
+    gameSection.classList.add('hidden');
+    loadingSection.classList.remove('hidden');
+    
+    await sendWebSocketMessage({
+      type: 'find_match',
+      username: currentUser
+    });
+  } catch (error) {
     showError('Not connected to server');
-    return;
+    loadingSection.classList.add('hidden');
+    gameSection.classList.remove('hidden');
   }
-  
-  gameSection.classList.add('hidden');
-  loadingSection.classList.remove('hidden');
-  
-  ws.send(JSON.stringify({
-    type: 'find_match',
-    username: currentUser
-  }));
 }
 
 // Create private room
-function createPrivateRoom() {
-  if (!ws || ws.readyState !== WebSocket.OPEN) {
+async function createPrivateRoom() {
+  try {
+    await sendWebSocketMessage({
+      type: 'create_room',
+      username: currentUser
+    });
+    
+    showStatus('Creating private room...', 'warning');
+  } catch (error) {
     showError('Not connected to server');
-    return;
   }
-  
-  ws.send(JSON.stringify({
-    type: 'create_room',
-    username: currentUser
-  }));
-  
-  showStatus('Creating private room...', 'warning');
 }
 
 // Join room
-function joinRoom() {
+async function joinRoom() {
   const roomCode = roomCodeInput.value.trim();
   
   if (!roomCode) {
@@ -211,80 +194,67 @@ function joinRoom() {
     return;
   }
   
-  if (!ws || ws.readyState !== WebSocket.OPEN) {
+  try {
+    await sendWebSocketMessage({
+      type: 'join_room',
+      username: currentUser,
+      roomCode: roomCode
+    });
+    
+    showStatus('Joining room...', 'warning');
+  } catch (error) {
     showError('Not connected to server');
-    return;
   }
-  
-  ws.send(JSON.stringify({
-    type: 'join_room',
-    username: currentUser,
-    roomCode: roomCode
-  }));
-  
-  showStatus('Joining room...', 'warning');
 }
 
-// Handle match found
-function handleMatchFound(data) {
-  loadingSection.classList.add('hidden');
-  gameSection.classList.remove('hidden');
-  showStatus(`🎯 Match found!\nOpponent: ${data.opponent}\nPrepare to battle...`, 'success');
-}
-
-// Handle room created
-function handleRoomCreated(data) {
-  roomCodeInput.value = data.roomCode;
-  showStatus(`✅ Room created!\nCode: ${data.roomCode}\n\nShare this code with your opponent`, 'success');
-}
-
-// Handle room joined
-function handleRoomJoined(data) {
-  showStatus('✅ Room joined!\nWaiting for match to start...', 'success');
-}
-
-// Handle match start
-function handleMatchStart(data) {
-  chrome.storage.local.set({ 
-    activeMatch: {
-      matchId: data.matchId,
-      problem: data.problem,
-      opponent: data.opponent,
-      startTime: Date.now()
-    }
-  });
+// Handle server messages
+function handleServerMessage(type, data) {
+  console.log('Handling message type:', type);
   
-  chrome.tabs.create({ 
-    url: `https://codeforces.com/problemset/problem/${data.problem.contestId}/${data.problem.index}`
-  });
-  
-  showStatus(
-    `🚀 Battle Started!\n\nProblem: ${data.problem.contestId}${data.problem.index}\nOpponent: ${data.opponent}\n\nFirst correct submission wins!`,
-    'success'
-  );
-}
-
-// Handle submission update
-function handleSubmissionUpdate(data) {
-  showStatus(`📝 ${data.username} submitted!\nVerdict: ${data.status}`, 'warning');
-}
-
-// Handle match end
-function handleMatchEnd(data) {
-  chrome.storage.local.remove(['activeMatch']);
-  
-  const isWinner = data.winner === currentUser;
-  const message = isWinner 
-    ? `🎉 Victory!\n\nYou won the match!\nTime: ${data.solveTime}s` 
-    : `💪 Good Fight!\n\n${data.winner} won\nTime: ${data.solveTime}s`;
-  
-  showStatus(message, isWinner ? 'success' : 'warning');
-  
-  setTimeout(() => {
-    loadingSection.classList.add('hidden');
-    gameSection.classList.remove('hidden');
-    hideStatus();
-  }, 5000);
+  switch (type) {
+    case 'match_found':
+      loadingSection.classList.add('hidden');
+      gameSection.classList.remove('hidden');
+      showStatus(`🎯 Match found!\nOpponent: ${data.opponent}\nPrepare to battle...`, 'success');
+      break;
+      
+    case 'room_created':
+      roomCodeInput.value = data.roomCode;
+      showStatus(`✅ Room created!\nCode: ${data.roomCode}\n\nShare this code with your opponent`, 'success');
+      break;
+      
+    case 'room_joined':
+      showStatus('✅ Room joined!\nWaiting for match to start...', 'success');
+      break;
+      
+    case 'match_start':
+      showStatus(
+        `🚀 Battle Started!\n\nProblem: ${data.problem.contestId}${data.problem.index}\nOpponent: ${data.opponent}\n\nFirst correct submission wins!`,
+        'success'
+      );
+      break;
+      
+    case 'submission_update':
+      showStatus(`📝 ${data.username} submitted!\nVerdict: ${data.status}`, 'warning');
+      break;
+      
+    case 'match_end':
+      loadingSection.classList.add('hidden');
+      gameSection.classList.remove('hidden');
+      const isWinner = data.winner === currentUser;
+      showStatus(
+        isWinner ? '🎉 Victory!\nCheck the results page!' : '💪 Good fight!\nCheck the results page!',
+        isWinner ? 'success' : 'warning'
+      );
+      setTimeout(() => hideStatus(), 3000);
+      break;
+      
+    case 'error':
+      showError(data.message);
+      loadingSection.classList.add('hidden');
+      gameSection.classList.remove('hidden');
+      break;
+  }
 }
 
 // Utility functions
